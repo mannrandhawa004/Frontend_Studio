@@ -2,7 +2,7 @@ import cors from "cors";
 import express from "express";
 import multer from "multer";
 import { cp, mkdir, readFile, writeFile, rm, readdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { exec } from "node:child_process";
@@ -492,15 +492,78 @@ app.post("/api/v1/admin/templates/:id/publish", auth, async (q, r) => {
 });
 
 // Serve static previews
+const previewsRoot = path.join(root, "templates");
+
+// The preview is embedded in an iframe from a different origin (the web app
+// on :3000 in dev, or another host in production). X-Frame-Options: SAMEORIGIN
+// made the modal render an empty iframe while "Open in tab" still worked.
 app.use(
   "/previews",
-  (req, res, next) => {
-    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  (_req, res, next) => {
+    res.setHeader("Content-Security-Policy", "frame-ancestors *");
     res.setHeader("Access-Control-Allow-Origin", "*");
     next();
   },
-  express.static(path.join(root, "templates")),
+  express.static(previewsRoot),
 );
+
+// Built templates commonly reference assets with root-relative paths such as
+// "/images/hero.jpg" or "/assets/app.js". Those requests hit the server root
+// instead of the template's output folder, so the images 404 inside the
+// preview. Use the referer to find the preview that requested the asset and
+// serve the file from that template's output directory. This keeps the
+// original absolute paths working, both in the modal and in a new tab.
+const previewRefererPattern = /\/previews\/([^/]+)\/output\/([^/]+)\//;
+
+app.use((req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  if (req.path === "/api" || req.path.startsWith("/api/")) return next();
+  if (req.path === "/previews" || req.path.startsWith("/previews/")) {
+    return next();
+  }
+
+  const referer = req.get("referer");
+  if (!referer) return next();
+
+  let refererPath = "";
+  try {
+    refererPath = new URL(referer).pathname;
+  } catch {
+    return next();
+  }
+
+  const match = refererPath.match(previewRefererPattern);
+  if (!match) return next();
+
+  const [, templateId, version] = match;
+  if (
+    !/^[A-Za-z0-9._-]+$/.test(templateId) ||
+    !/^[A-Za-z0-9._-]+$/.test(version)
+  ) {
+    return next();
+  }
+
+  let assetPath = req.path;
+  try {
+    assetPath = decodeURIComponent(assetPath);
+  } catch {
+    return next();
+  }
+
+  // Resolve against the template output folder and block path traversal.
+  const baseDir = path.join(previewsRoot, templateId, "output", version);
+  const baseResolved = path.resolve(baseDir) + path.sep;
+  const filePath = path.resolve(baseDir, `.${assetPath}`);
+  if (!filePath.startsWith(baseResolved)) return next();
+
+  try {
+    if (!statSync(filePath).isFile()) return next();
+  } catch {
+    return next();
+  }
+
+  res.sendFile(filePath);
+});
 
 const port = Number(process.env.PORT || 4000);
 load().then(() => {
