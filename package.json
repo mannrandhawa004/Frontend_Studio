@@ -1,0 +1,16 @@
+{
+  "name": "frontend-studio",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @frontend-studio/api\" \"npm run dev -w @frontend-studio/web\"",
+    "build": "npm run build -w @frontend-studio/web",
+    "start": "concurrently \"npm run start -w @frontend-studio/api\" \"npm run start -w @frontend-studio/web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  }
+}

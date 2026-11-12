@@ -1,0 +1,226 @@
+{
+  "templates": [
+    {
+      "id": "tpl_3d_sphere_ball",
+      "slug": "3d-sphere-ball",
+      "title": "3D Sphere Ball",
+      "category": "Experimental",
+      "framework": "vite-react-static",
+      "tags": [
+        "3D",
+        "Interactive",
+        "Motion",
+        "Three.js",
+        "React"
+      ],
+      "description": "Interactive 3D sphere visual study with physics motion and expressive interactions.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#313d89,#b4b3ed)",
+      "updatedAt": "2026-11-12T17:08:27.813Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_aeline_agency",
+      "slug": "aeline-agency",
+      "title": "Aeline Agency",
+      "category": "Agency",
+      "framework": "vite-react-static",
+      "tags": [
+        "Agency",
+        "Modern",
+        "AI",
+        "Portfolio"
+      ],
+      "description": "Human insight meets intelligent impact. High-converting modern agency template.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#1e293b,#64748b)",
+      "updatedAt": "2026-11-12T17:08:27.831Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_ai_agency",
+      "slug": "ai-agency",
+      "title": "Aigocy AI Agency",
+      "category": "Agency",
+      "framework": "vite-react-static",
+      "tags": [
+        "AI",
+        "Sprint",
+        "Agency",
+        "SaaS"
+      ],
+      "description": "Fast-moving AI sprint studio template with slick interactions and bold typography.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#3c554b,#9abca8)",
+      "updatedAt": "2026-11-12T17:08:27.854Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_design_1",
+      "slug": "versace-code-editorial",
+      "title": "Versace Code Editorial",
+      "category": "Portfolio",
+      "framework": "vite-react-static",
+      "tags": [
+        "Editorial",
+        "Portfolio",
+        "Fashion",
+        "Minimal"
+      ],
+      "description": "Minimal modern editorial design and fashion portfolio experience.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#b6987c,#e5d1b2)",
+      "updatedAt": "2026-11-12T17:08:27.898Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_evergreen",
+      "slug": "evergreen-landscape",
+      "title": "Evergreen Landscape",
+      "category": "Landing page",
+      "framework": "vite-react-static",
+      "tags": [
+        "Landing page",
+        "Creative",
+        "Nature",
+        "Architecture"
+      ],
+      "description": "Curated organic landing page experience for landscape design and garden care.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#19433d,#83af84)",
+      "updatedAt": "2026-11-12T17:08:27.909Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_lumina_ai",
+      "slug": "lumina-ai",
+      "title": "Lumina AI",
+      "category": "SaaS",
+      "framework": "vite-react-static",
+      "tags": [
+        "AI",
+        "SaaS",
+        "Automation",
+        "Workflow"
+      ],
+      "description": "AI that connects your tools and gets work done across modern workspaces.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#4f46e5,#a855f7)",
+      "updatedAt": "2026-11-12T17:08:27.917Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_melius_ai",
+      "slug": "melius-ai-os",
+      "title": "Melius AI OS",
+      "category": "SaaS",
+      "framework": "vite-react-static",
+      "tags": [
+        "AI",
+        "Creative",
+        "Operating System",
+        "Design"
+      ],
+      "description": "The AI-native operating system for creatives and design teams.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#0f172a,#38bdf8)",
+      "updatedAt": "2026-11-12T17:08:27.933Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_northbeam_agency",
+      "slug": "northbeam-agency",
+      "title": "Northbeam Agency",
+      "category": "Agency",
+      "framework": "vite-react-static",
+      "tags": [
+        "Agency",
+        "Development",
+        "Business",
+        "Engineering"
+      ],
+      "description": "Build with confidence. Deliver on time with enterprise design standards.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#0369a1,#38bdf8)",
+      "updatedAt": "2026-11-12T17:08:27.949Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_pixel_ai",
+      "slug": "pixel-ai-studio",
+      "title": "PixelAI Studio",
+      "category": "Creative",
+      "framework": "vite-react-static",
+      "tags": [
+        "AI",
+        "Image",
+        "Generative",
+        "Creative"
+      ],
+      "description": "Image thinking for a new age. Generative visual studio template.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#7c3aed,#ec4899)",
+      "updatedAt": "2026-11-12T17:08:27.979Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_real_state_design",
+      "slug": "spaciaz-real-estate",
+      "title": "Spaciaz Real Estate",
+      "category": "Real Estate",
+      "framework": "vite-react-static",
+      "tags": [
+        "Real Estate",
+        "Architecture",
+        "Luxury",
+        "Interior"
+      ],
+      "description": "Modern real estate and architecture portfolio with immersive layouts.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#78350f,#f59e0b)",
+      "updatedAt": "2026-11-12T17:08:28.000Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    },
+    {
+      "id": "tpl_utopia_estate",
+      "slug": "utopia-estates",
+      "title": "Utopia Estates",
+      "category": "Real Estate",
+      "framework": "vite-react-static",
+      "tags": [
+        "Real Estate",
+        "Modern Living",
+        "Homes",
+        "Luxury"
+      ],
+      "description": "A new way of living. Elegant residential real estate showcase template.",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#064e3b,#10b981)",
+      "updatedAt": "2026-11-12T17:08:28.021Z",
+      "version": 1,
+      "publishedVersion": 1,
+      "history": []
+    }
+  ],
+  "jobs": []
+}
