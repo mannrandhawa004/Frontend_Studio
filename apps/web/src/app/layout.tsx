@@ -3,11 +3,11 @@ import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
   title: {
-    default: "Frontend Studio — Curated React templates",
-    template: "%s — Frontend Studio",
+    default: "Tessera — Curated React templates",
+    template: "%s — Tessera",
   },
   description:
-    "A curated showcase and private workspace for reviewing and publishing standout React and web templates.",
+    "Tessera is a curated showcase of standout React, Next.js, and HTML/CSS templates with live, responsive previews.",
 };
 
 export const viewport: Viewport = {

@@ -5,10 +5,12 @@ import { cp, mkdir, readFile, writeFile, rm, readdir } from "node:fs/promises";
 import { existsSync, statSync } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { exec } from "node:child_process";
+import { exec, execFile } from "node:child_process";
 import { promisify } from "node:util";
+import os from "node:os";
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 type T = {
   id: string;
@@ -26,6 +28,7 @@ type T = {
   sourceFiles?: string[];
   hasPreview?: boolean;
   previewUrl?: string | null;
+  thumbnailUrl?: string | null;
   history: {
     version: number;
     title: string;
@@ -154,12 +157,125 @@ function auth(
 app.get("/api/v1/health", (_q, r) =>
   r.json({
     status: "ok",
-    service: "frontend-studio-api",
+    service: "tessera-api",
     storage: root,
   }),
 );
 
 // Helper to enrich templates with preview URLs
+function findBrowser(): string | null {
+  const configured = process.env.CHROME_PATH;
+  if (configured && existsSync(configured)) return configured;
+
+  const candidates =
+    process.platform === "win32"
+      ? [
+          process.env.ProgramFiles
+            ? path.join(
+                process.env.ProgramFiles,
+                "Google",
+                "Chrome",
+                "Application",
+                "chrome.exe",
+              )
+            : "",
+          process.env["ProgramFiles(x86)"]
+            ? path.join(
+                process.env["ProgramFiles(x86)"]!,
+                "Google",
+                "Chrome",
+                "Application",
+                "chrome.exe",
+              )
+            : "",
+          process.env.ProgramFiles
+            ? path.join(
+                process.env.ProgramFiles,
+                "Microsoft",
+                "Edge",
+                "Application",
+                "msedge.exe",
+              )
+            : "",
+          process.env["ProgramFiles(x86)"]
+            ? path.join(
+                process.env["ProgramFiles(x86)"]!,
+                "Microsoft",
+                "Edge",
+                "Application",
+                "msedge.exe",
+              )
+            : "",
+        ]
+      : [
+          "/usr/bin/google-chrome",
+          "/usr/bin/google-chrome-stable",
+          "/usr/bin/chromium",
+          "/usr/bin/chromium-browser",
+          "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        ];
+
+  return candidates.find((p) => p && existsSync(p)) || null;
+}
+
+function thumbnailUrlFor(t: T, version: number, baseUrl: string): string | null {
+  const jpg = path.join(root, "templates", t.id, `thumbnail-${version}.jpg`);
+  if (existsSync(jpg)) return `${baseUrl}/previews/${t.id}/thumbnail-${version}.jpg`;
+  const png = path.join(root, "templates", t.id, `thumbnail-${version}.png`);
+  if (existsSync(png)) return `${baseUrl}/previews/${t.id}/thumbnail-${version}.png`;
+  return null;
+}
+
+async function generateThumbnail(t: T, version: number): Promise<string | null> {
+  const browser = findBrowser();
+  if (!browser) return null;
+
+  const outputDir = path.join(root, "templates", t.id, "output", String(version));
+  if (!existsSync(path.join(outputDir, "index.html"))) return null;
+
+  const pngPath = path.join(root, "templates", t.id, `thumbnail-${version}.png`);
+  const jpgPath = pngPath.replace(/\.png$/, ".jpg");
+  const profileDir = path.join(os.tmpdir(), `studio-shot-${randomUUID()}`);
+  const url = `http://127.0.0.1:${port}/previews/${t.id}/output/${version}/index.html`;
+
+  try {
+    await execFileAsync(
+      browser,
+      [
+        "--headless=new",
+        "--disable-gpu",
+        "--hide-scrollbars",
+        "--no-first-run",
+        "--no-default-browser-check",
+        `--user-data-dir=${profileDir}`,
+        "--window-size=1280,880",
+        "--virtual-time-budget=7000",
+        `--screenshot=${pngPath}`,
+        url,
+      ],
+      { timeout: 90_000, windowsHide: true },
+    );
+
+    // Shrink the screenshot into a card-friendly JPEG when sharp is available.
+    try {
+      const sharp = (await import("sharp")).default;
+      await sharp(pngPath)
+        .resize(1200, 825, { fit: "cover", position: "top" })
+        .jpeg({ quality: 80, mozjpeg: true })
+        .toFile(jpgPath);
+      await rm(pngPath, { force: true });
+      return jpgPath;
+    } catch {
+      return pngPath;
+    }
+  } catch (e) {
+    console.error(`Thumbnail capture failed for ${t.id}:`, e);
+    return null;
+  } finally {
+    await rm(profileDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 function enrichTemplate(t: T, req: express.Request): T {
   const v = t.publishedVersion || t.version || 1;
   const indexPath = path.join(root, "templates", t.id, "output", String(v), "index.html");
@@ -171,6 +287,7 @@ function enrichTemplate(t: T, req: express.Request): T {
     ...t,
     hasPreview,
     previewUrl: hasPreview ? `${baseUrl}/previews/${t.id}/output/${v}/index.html` : null,
+    thumbnailUrl: thumbnailUrlFor(t, v, baseUrl),
   };
 }
 
@@ -200,7 +317,7 @@ app.post("/api/v1/admin/login", (q, r) => {
   }
   const t = randomUUID();
   tokens.add(t);
-  r.json({ token: t, user: { name: "Studio Admin" } });
+  r.json({ token: t, user: { name: "Tessera Admin" } });
 });
 
 app.post("/api/v1/admin/logout", auth, (q, r) => {
@@ -488,6 +605,27 @@ app.post("/api/v1/admin/templates/:id/publish", auth, async (q, r) => {
   t.publishedVersion = t.version;
   t.updatedAt = new Date().toISOString();
   await save();
+
+  // Capture a fresh card screenshot in the background. If no headless browser
+  // is available the public card simply falls back to the live iframe preview.
+  void generateThumbnail(t, t.publishedVersion);
+
+  r.json({ template: enrichTemplate(t, q) });
+});
+
+// Admin: Regenerate the card thumbnail for the published version
+app.post("/api/v1/admin/templates/:id/thumbnail", auth, async (q, r) => {
+  const t = templates.find((x) => x.id === q.params.id);
+  if (!t) return r.status(404).json({ message: "Template not found." });
+
+  const version = t.publishedVersion || t.version;
+  const result = await generateThumbnail(t, version);
+  if (!result) {
+    return r.status(503).json({
+      message:
+        "Could not capture a thumbnail. Make sure a build exists and Chrome or Edge is installed (set CHROME_PATH if needed).",
+    });
+  }
   r.json({ template: enrichTemplate(t, q) });
 });
 
@@ -568,6 +706,6 @@ app.use((req, res, next) => {
 const port = Number(process.env.PORT || 4000);
 load().then(() => {
   app.listen(port, () => {
-    console.log(`Frontend Studio API listening on http://localhost:${port}`);
+    console.log(`Tessera API listening on http://localhost:${port}`);
   });
 });

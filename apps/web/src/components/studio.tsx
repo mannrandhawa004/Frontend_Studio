@@ -14,6 +14,7 @@ type Template = {
   updatedAt: string;
   hasPreview?: boolean;
   previewUrl?: string | null;
+  thumbnailUrl?: string | null;
   publishedVersion?: number;
   version?: number;
 };
@@ -185,14 +186,13 @@ export default function Studio() {
 
       <nav className="nav" aria-label="Main navigation">
         <a className="brand" href="#top">
-          <span className="brand-mark">◒</span>
-          frontend <b>studio</b>
+          <span className="brand-mark">◒</span> <b>tessera</b>
         </a>
 
         <div className="navlinks">
           <a href="#templates">Collection</a>
-          <a href="#react-guide">How it works</a>
-          <a href="#workflow">Workflow</a>
+          <a href="#why">Why us</a>
+          <a href="#faq">FAQ</a>
         </div>
 
         <div className="nav-actions">
@@ -200,9 +200,6 @@ export default function Studio() {
             <i aria-hidden="true" />{" "}
             {loading ? "Loading templates" : `${publishedCount} live templates`}
           </span>
-          <a className="portal" href="/admin">
-            Admin portal <span aria-hidden="true">↗</span>
-          </a>
           <button
             className="nav-toggle"
             aria-label={navOpen ? "Close menu" : "Open menu"}
@@ -220,14 +217,11 @@ export default function Studio() {
           <a href="#templates" onClick={() => setNavOpen(false)}>
             Collection <span>{loading ? "…" : publishedCount}</span>
           </a>
-          <a href="#react-guide" onClick={() => setNavOpen(false)}>
-            How it works
+          <a href="#why" onClick={() => setNavOpen(false)}>
+            Why us
           </a>
-          <a href="#workflow" onClick={() => setNavOpen(false)}>
-            Workflow
-          </a>
-          <a href="/admin" onClick={() => setNavOpen(false)}>
-            Admin portal ↗
+          <a href="#faq" onClick={() => setNavOpen(false)}>
+            FAQ
           </a>
         </div>
       )}
@@ -246,15 +240,16 @@ export default function Studio() {
               <i>first impression.</i>
             </h1>
             <p className="intro">
-              A visual showcase and private workspace for collecting,
-              reviewing, and publishing standout React and web templates.
+              Tessera is a curated showcase of standout React and web templates
+              — explore every design in a live, responsive preview before you
+              start your next project.
             </p>
             <div className="actions">
               <a className="btn btn-primary" href="#templates">
                 Browse templates <b aria-hidden="true">→</b>
               </a>
-              <a className="btn btn-ghost" href="#react-guide">
-                Add your template <span aria-hidden="true">↓</span>
+              <a className="btn btn-ghost" href="#why">
+                Why tessera <span aria-hidden="true">↓</span>
               </a>
             </div>
             <dl className="hero-stats">
@@ -469,16 +464,6 @@ export default function Studio() {
                   }}
                 >
                   <div className="preview" style={{ background: t.accent }}>
-                    <div className="preview-top">
-                      <span className="previewMark">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <span className="card-badge">
-                        {t.framework.includes("react")
-                          ? "⚛ React"
-                          : frameworkLabel(t.framework)}
-                      </span>
-                    </div>
                     <div className="preview-chrome" aria-hidden="true">
                       <i />
                       <i />
@@ -490,6 +475,39 @@ export default function Studio() {
                       <em>
                         {t.tags.slice(0, 2).join(" · ") || t.category}
                       </em>
+                    </div>
+                    {t.thumbnailUrl ? (
+                      <img
+                        className="card-shot"
+                        src={t.thumbnailUrl}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : t.hasPreview ? (
+                      <iframe
+                        className="card-shot card-shot-live"
+                        src={getPreviewUrl(t)}
+                        title=""
+                        aria-hidden="true"
+                        tabIndex={-1}
+                        loading="lazy"
+                        scrolling="no"
+                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                      />
+                    ) : null}
+                    <div className="preview-top">
+                      <span className="previewMark">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span className="card-badge">
+                        {t.framework.includes("react")
+                          ? "⚛ React"
+                          : frameworkLabel(t.framework)}
+                      </span>
                     </div>
                     <span className="preview-live">
                       <i /> Live
@@ -529,62 +547,56 @@ export default function Studio() {
           )}
         </section>
 
-        <section className="react-guide-section" id="react-guide">
-          <div className="guide-card">
-            <div className="guide-head">
+        <section className="why-section" id="why">
+          <div className="why-inner">
+            <div className="why-head">
               <div>
-                <p className="eyebrow">Developer guide</p>
+                <p className="eyebrow">Why this collection</p>
                 <h2>
-                  Add & showcase <i>React templates.</i>
+                  Made to be <i>worth your time.</i>
                 </h2>
               </div>
-              <p className="guide-desc">
-                Frontend Studio lets you showcase any React project — Vite,
-                Next.js, or Create React App — in three simple steps.
+              <p className="why-desc">
+                No endless scrolling, no half-finished demos. Just a focused set
+                of designs chosen for craft, clarity, and real-world use.
               </p>
             </div>
 
-            <div className="guide-steps">
-              <div className="guide-step">
-                <span className="step-num">01</span>
-                <h4>Build your project</h4>
-                <p>In your React project folder, run your production build command:</p>
-                <code>npm run build</code>
-                <p className="subtext">
-                  Vite creates a <code>dist/</code> folder. Next.js static export
-                  creates an <code>out/</code> folder.
+            <div className="why-grid">
+              <div className="why-card">
+                <span className="why-icon" aria-hidden="true">
+                  ◒
+                </span>
+                <h3>Curated, not crowded</h3>
+                <p>
+                  Every template is hand-picked for strong typography, balanced
+                  layouts, and a clear point of view — so you spend less time
+                  sorting and more time choosing.
                 </p>
               </div>
 
-              <div className="guide-step">
-                <span className="step-num">02</span>
-                <h4>Package your files</h4>
-                <p>Zip the build folder, or select the files inside it directly:</p>
-                <code>index.html + assets/ + images/</code>
-                <p className="subtext">
-                  Uploads are extracted automatically and your bundled app is
-                  located for you.
+              <div className="why-card">
+                <span className="why-icon" aria-hidden="true">
+                  ◫
+                </span>
+                <h3>Preview it live</h3>
+                <p>
+                  Open any template full-screen and switch between desktop,
+                  tablet, and mobile views to see exactly how it behaves on every
+                  screen before you commit.
                 </p>
               </div>
 
-              <div className="guide-step">
-                <span className="step-num">03</span>
-                <h4>Register & publish</h4>
-                <p>Head to the admin portal and follow the short flow:</p>
-                <ol>
-                  <li>
-                    <b>New template</b> → choose Vite React
-                  </li>
-                  <li>
-                    <b>Manage</b> → upload your .zip
-                  </li>
-                  <li>
-                    <b>Build</b> → then <b>Publish</b>
-                  </li>
-                </ol>
-                <a className="guide-link" href="/admin">
-                  Open admin portal →
-                </a>
+              <div className="why-card">
+                <span className="why-icon" aria-hidden="true">
+                  ✦
+                </span>
+                <h3>Ready to start from</h3>
+                <p>
+                  React, Next.js, and HTML/CSS builds, each backed by a
+                  production preview — a confident starting point for your next
+                  project or client pitch.
+                </p>
               </div>
             </div>
           </div>
@@ -593,79 +605,121 @@ export default function Studio() {
         <section className="workflow" id="workflow">
           <div className="workflow-head">
             <div>
-              <p className="eyebrow">A deliberate process</p>
+              <p className="eyebrow">A simple way to explore</p>
               <h2>
-                From source to <i>showcase.</i>
+                From first look to <i>final pick.</i>
               </h2>
             </div>
             <p>
-              Three quiet steps between a local build and a confident
-              client-ready link.
+              Three quick steps between opening the collection and sharing a
+              preview with your team.
             </p>
           </div>
           <div className="steps">
             <div>
               <b>01</b>
-              <h3>Import safely</h3>
+              <h3>Browse the collection</h3>
               <p>
-                Upload built React packages or static assets into isolated
-                template folders.
+                Search by keyword or narrow the collection by category and build
+                target to find the right direction.
               </p>
               <span aria-hidden="true">↳</span>
             </div>
             <div>
               <b>02</b>
-              <h3>Review & build</h3>
+              <h3>Preview in context</h3>
               <p>
-                Validate the output bundles with a responsive multi-device
-                previewer.
+                Open any template full-screen and check it on desktop, tablet,
+                and mobile without leaving the page.
               </p>
               <span aria-hidden="true">↳</span>
             </div>
             <div>
               <b>03</b>
-              <h3>Publish boldly</h3>
+              <h3>Share the link</h3>
               <p>
-                Make standout designs accessible to visitors and clients
-                worldwide.
+                Copy a preview link or open it in a new tab to review options
+                with clients and teammates.
               </p>
               <span aria-hidden="true">↳</span>
             </div>
           </div>
         </section>
 
-        <section id="admin" className="admin">
-          <div>
-            <p className="eyebrow">Admin workspace</p>
+        <section id="faq" className="faq">
+          <div className="faq-intro">
+            <p className="eyebrow">Good to know</p>
             <h2>
-              Everything in its <i>place.</i>
+              Questions, <i>answered.</i>
             </h2>
             <p>
-              Manage template metadata, upload React bundles, inspect build
-              jobs, and publish updates from one focused dashboard.
+              Everything you need to know before you start exploring. For
+              anything else, the live previews are the best place to dig deeper.
             </p>
           </div>
-          <div className="admincard">
-            <span className="live">
-              <i /> Local storage ready
-            </span>
-            <strong>
-              {items.length || "—"}
-              <small> published templates</small>
-            </strong>
-            <div className="admincard-meta">
-              <span>Auto-preview</span>
-              <span>Device testing</span>
-              <span>Build logs</span>
-            </div>
-            <a href="/admin">Open dashboard →</a>
+          <div className="faq-list">
+            <details className="faq-item">
+              <summary>
+                What is Tessera?
+                <span aria-hidden="true">+</span>
+              </summary>
+              <p>
+                Tessera is a curated collection of polished website templates.
+                Each entry is a finished, production-ready build you can explore
+                in a live preview.
+              </p>
+            </details>
+            <details className="faq-item">
+              <summary>
+                Are the templates ready to use?
+                <span aria-hidden="true">+</span>
+              </summary>
+              <p>
+                Yes. Every template in the collection is a complete build, not a
+                mockup. What you see in the preview is what you get — React,
+                Next.js, or plain HTML/CSS depending on the build target.
+              </p>
+            </details>
+            <details className="faq-item">
+              <summary>
+                How do I preview a template?
+                <span aria-hidden="true">+</span>
+              </summary>
+              <p>
+                Click any card in the collection to open it full-screen. Use the
+                desktop, tablet, and mobile buttons to check the layout at every
+                size, then copy the link or open it in a new tab.
+              </p>
+            </details>
+            <details className="faq-item">
+              <summary>
+                Does the collection keep growing?
+                <span aria-hidden="true">+</span>
+              </summary>
+              <p>
+                It does. New templates are reviewed and added over time, and the
+                live count in the navigation always reflects what is currently on
+                display.
+              </p>
+            </details>
+            <details className="faq-item">
+              <summary>
+                Can I adapt a template to my own brand?
+                <span aria-hidden="true">+</span>
+              </summary>
+              <p>
+                Yes. Every template is a starting point — swap the content,
+                colors, and typography to fit your brand or the brief in front of
+                you.
+              </p>
+            </details>
           </div>
         </section>
       </main>
 
       <footer>
         <a className="brand" href="#top">
-          <span className="brand-mark">◒</span> frontend <b>studio</b>
+          <span className="brand-mark">◒</span> <b>tessera</b>
         </a>
         <span>© 2026 — Crafted with care for modern React developers.</span>
         <a href="#top">Back to top ↑</a>

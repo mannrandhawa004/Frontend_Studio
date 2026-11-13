@@ -332,7 +332,7 @@ export default function AdminStudio() {
         <div className="login-shell">
           <aside className="login-art">
             <a className="brand" href="/">
-              <span className="brand-mark">◒</span> frontend <b>studio</b>
+              <span className="brand-mark">◒</span> <b>tessera</b>
             </a>
             <div className="login-art-copy">
               <p className="eyebrow">Private workspace</p>
@@ -420,7 +420,7 @@ export default function AdminStudio() {
     <main className="adminpage">
       <header className="admin-topbar">
         <a className="brand" href="/">
-          <span className="brand-mark">◒</span> frontend <b>studio</b>
+          <span className="brand-mark">◒</span> <b>tessera</b>
         </a>
         <div className="admin-topbar-actions">
           <a href="/" className="gallerylink">
@@ -447,7 +447,7 @@ export default function AdminStudio() {
         <div className="adminhero-copy">
           <p className="eyebrow">Admin workspace</p>
           <h1>
-            Good to see you, <i>studio.</i>
+            Good to see you, <i>admin.</i>
           </h1>
           <p>
             Register a template, upload the production build, run a build, then

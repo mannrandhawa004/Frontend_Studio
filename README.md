@@ -1,4 +1,4 @@
-# Frontend Studio
+# Tessera
 
 A modern template showcase and management studio designed to curate, preview, and publish standout React and web templates.
 
@@ -24,7 +24,7 @@ npm run dev
 
 ## ⚛️ How to Showcase Your React Templates
 
-Frontend Studio natively supports showcasing any React project (Vite, Next.js, or Create React App):
+Tessera natively supports showcasing any React project (Vite, Next.js, or Create React App):
 
 ### Step 1: Build Your React Project
 In your React template repository or folder, run your production build:
@@ -61,4 +61,4 @@ Zip your build output folder into a `.zip` archive (e.g. `dist.zip`), or prepare
 3. **The Fix**: The card buttons and clicks are now wired directly to a rich **Interactive Live Preview Modal**. Visitors can instantly preview any template on Desktop, Tablet, and Mobile devices or open it full-screen in a new tab without any login required!
 
 ### How are React templates built and served?
-React source code (`.jsx`/`.tsx`) must be bundled to JavaScript before browsers can render it. Frontend Studio allows you to upload your production build (`dist.zip` or files) directly. The platform automatically stages and serves the static assets with live previews at `/previews/:templateId/output/:version/index.html`.
+React source code (`.jsx`/`.tsx`) must be bundled to JavaScript before browsers can render it. Tessera allows you to upload your production build (`dist.zip` or files) directly. The platform automatically stages and serves the static assets with live previews at `/previews/:templateId/output/:version/index.html`.
