@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import SiteFooter from "./site-footer";
 
 type Template = {
   id: string;
@@ -717,13 +718,7 @@ export default function Studio() {
         </section>
       </main>
 
-      <footer>
-        <a className="brand" href="#top">
-          <span className="brand-mark">◒</span> <b>tessera</b>
-        </a>
-        <span>© 2026 — Crafted with care for modern React developers.</span>
-        <a href="#top">Back to top ↑</a>
-      </footer>
+      <SiteFooter />
 
       {activePreview && (
         <div

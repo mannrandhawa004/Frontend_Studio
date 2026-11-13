@@ -141,6 +141,11 @@ const upload = multer({
   limits: { fileSize: 100_000_000, files: 200 },
 });
 
+const thumbUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15_000_000, files: 1 },
+});
+
 function auth(
   req: express.Request,
   res: express.Response,
@@ -219,11 +224,21 @@ function findBrowser(): string | null {
 }
 
 function thumbnailUrlFor(t: T, version: number, baseUrl: string): string | null {
-  const jpg = path.join(root, "templates", t.id, `thumbnail-${version}.jpg`);
-  if (existsSync(jpg)) return `${baseUrl}/previews/${t.id}/thumbnail-${version}.jpg`;
-  const png = path.join(root, "templates", t.id, `thumbnail-${version}.png`);
-  if (existsSync(png)) return `${baseUrl}/previews/${t.id}/thumbnail-${version}.png`;
+  const dir = path.join(root, "templates", t.id);
+  const cacheKey = Date.parse(t.updatedAt) || version;
+  for (const ext of ["jpg", "png", "webp"]) {
+    if (existsSync(path.join(dir, `thumbnail-${version}.${ext}`))) {
+      return `${baseUrl}/previews/${t.id}/thumbnail-${version}.${ext}?v=${cacheKey}`;
+    }
+  }
   return null;
+}
+
+function hasThumbnail(t: T, version: number): boolean {
+  const dir = path.join(root, "templates", t.id);
+  return ["jpg", "png", "webp"].some((ext) =>
+    existsSync(path.join(dir, `thumbnail-${version}.${ext}`)),
+  );
 }
 
 async function generateThumbnail(t: T, version: number): Promise<string | null> {
@@ -264,8 +279,11 @@ async function generateThumbnail(t: T, version: number): Promise<string | null> 
         .jpeg({ quality: 80, mozjpeg: true })
         .toFile(jpgPath);
       await rm(pngPath, { force: true });
+      await rm(jpgPath.replace(/\.jpg$/, ".webp"), { force: true }).catch(() => {});
       return jpgPath;
     } catch {
+      await rm(jpgPath, { force: true }).catch(() => {});
+      await rm(jpgPath.replace(/\.jpg$/, ".webp"), { force: true }).catch(() => {});
       return pngPath;
     }
   } catch (e) {
@@ -304,6 +322,36 @@ app.get("/api/v1/templates/:id", (req, res) => {
   const t = templates.find((x) => x.id === req.params.id);
   if (!t) return res.status(404).json({ message: "Template not found." });
   res.json({ template: enrichTemplate(t, req) });
+});
+
+// Public: Newsletter signup, stored locally in storage/newsletter.json
+app.post("/api/v1/newsletter", async (q, r) => {
+  const email = String(q.body?.email || "").trim().toLowerCase();
+  if (
+    !email ||
+    email.length > 254 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)
+  ) {
+    return r.status(400).json({ message: "Please enter a valid email address." });
+  }
+
+  const file = path.join(root, "newsletter.json");
+  let subscribers: { email: string; createdAt: string }[] = [];
+  try {
+    const d = JSON.parse(await readFile(file, "utf8"));
+    subscribers = Array.isArray(d) ? d : Array.isArray(d?.subscribers) ? d.subscribers : [];
+  } catch {
+    subscribers = [];
+  }
+
+  if (subscribers.some((s) => s.email === email)) {
+    return r.json({ message: "You're already on the list." });
+  }
+
+  subscribers.push({ email, createdAt: new Date().toISOString() });
+  await mkdir(root, { recursive: true });
+  await writeFile(file, JSON.stringify({ subscribers }, null, 2));
+  r.status(201).json({ message: "You're on the list — check your inbox." });
 });
 
 // Admin: Auth
@@ -606,9 +654,12 @@ app.post("/api/v1/admin/templates/:id/publish", auth, async (q, r) => {
   t.updatedAt = new Date().toISOString();
   await save();
 
-  // Capture a fresh card screenshot in the background. If no headless browser
-  // is available the public card simply falls back to the live iframe preview.
-  void generateThumbnail(t, t.publishedVersion);
+  // Capture a fresh card screenshot in the background when the new version
+  // does not already have a custom thumbnail. If no headless browser is
+  // available the public card simply falls back to the live iframe preview.
+  if (!hasThumbnail(t, t.publishedVersion)) {
+    void generateThumbnail(t, t.publishedVersion);
+  }
 
   r.json({ template: enrichTemplate(t, q) });
 });
@@ -626,8 +677,62 @@ app.post("/api/v1/admin/templates/:id/thumbnail", auth, async (q, r) => {
         "Could not capture a thumbnail. Make sure a build exists and Chrome or Edge is installed (set CHROME_PATH if needed).",
     });
   }
-  r.json({ template: enrichTemplate(t, q) });
+  t.updatedAt = new Date().toISOString();
+  await save();
+  r.json({
+    message: "Thumbnail captured from the live preview.",
+    template: enrichTemplate(t, q),
+  });
 });
+
+// Admin: Upload a custom card thumbnail (JPG, PNG or WebP)
+app.post(
+  "/api/v1/admin/templates/:id/thumbnail/upload",
+  auth,
+  thumbUpload.single("thumbnail"),
+  async (q, r) => {
+    const t = templates.find((x) => x.id === q.params.id);
+    if (!t) return r.status(404).json({ message: "Template not found." });
+
+    const file = q.file as Express.Multer.File | undefined;
+    if (!file?.buffer?.length) {
+      return r.status(400).json({ message: "Choose an image file to upload." });
+    }
+    if (!file.mimetype.startsWith("image/")) {
+      return r.status(400).json({ message: "Thumbnail must be an image file." });
+    }
+
+    const version = t.publishedVersion || t.version;
+    const dir = path.join(root, "templates", t.id);
+    await mkdir(dir, { recursive: true });
+
+    const jpgPath = path.join(dir, `thumbnail-${version}.jpg`);
+    try {
+      const sharp = (await import("sharp")).default;
+      await sharp(file.buffer)
+        .resize(1200, 825, { fit: "cover", position: "top" })
+        .jpeg({ quality: 82, mozjpeg: true })
+        .toFile(jpgPath);
+    } catch {
+      return r
+        .status(500)
+        .json({ message: "Could not process that image. Try a JPG or PNG." });
+    }
+
+    for (const ext of ["png", "webp"]) {
+      await rm(path.join(dir, `thumbnail-${version}.${ext}`), { force: true }).catch(
+        () => {},
+      );
+    }
+
+    t.updatedAt = new Date().toISOString();
+    await save();
+    r.json({
+      message: "Card thumbnail updated.",
+      template: enrichTemplate(t, q),
+    });
+  },
+);
 
 // Serve static previews
 const previewsRoot = path.join(root, "templates");

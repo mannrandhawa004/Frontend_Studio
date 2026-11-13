@@ -20,6 +20,7 @@ type Template = {
   sourceFiles?: string[];
   hasPreview?: boolean;
   previewUrl?: string | null;
+  thumbnailUrl?: string | null;
 };
 
 type Job = {
@@ -83,6 +84,7 @@ export default function AdminStudio() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [pickedFiles, setPickedFiles] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [isThumbUploading, setIsThumbUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -283,6 +285,70 @@ export default function AdminStudio() {
   function addFiles(list: FileList | null) {
     if (!list?.length) return;
     setPickedFiles(Array.from(list));
+  }
+
+  async function uploadThumbnail(file: File | null) {
+    if (!selected || !file) return;
+    setIsThumbUploading(true);
+    const data = new FormData();
+    data.append("thumbnail", file);
+    try {
+      const r = await fetch(
+        `${API}/admin/templates/${selected.id}/thumbnail/upload`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: data,
+        },
+      );
+      const d = await r.json();
+      if (!r.ok) {
+        setToast({
+          text: d.message || "Could not update the thumbnail.",
+          kind: "error",
+        });
+        return;
+      }
+      setToast({ text: d.message || "Card thumbnail updated.", kind: "success" });
+      if (d.template) setSelected(d.template);
+      await refresh(true);
+    } catch {
+      setToast({ text: "Thumbnail upload failed.", kind: "error" });
+    } finally {
+      setIsThumbUploading(false);
+    }
+  }
+
+  async function captureThumbnail() {
+    if (!selected) return;
+    setIsThumbUploading(true);
+    try {
+      const r = await fetch(
+        `${API}/admin/templates/${selected.id}/thumbnail`,
+        {
+          method: "POST",
+          headers: auth(token),
+        },
+      );
+      const d = await r.json();
+      if (!r.ok) {
+        setToast({
+          text: d.message || "Could not capture a thumbnail.",
+          kind: "error",
+        });
+        return;
+      }
+      setToast({
+        text: d.message || "Thumbnail captured from the live preview.",
+        kind: "success",
+      });
+      if (d.template) setSelected(d.template);
+      await refresh(true);
+    } catch {
+      setToast({ text: "Thumbnail capture failed.", kind: "error" });
+    } finally {
+      setIsThumbUploading(false);
+    }
   }
 
   function openEdit(t: Template) {
@@ -493,29 +559,85 @@ export default function AdminStudio() {
         </div>
       </section>
 
-      <details className="admin-tip">
-        <summary>
-          <span>💡 How to add a React template</span>
-          <small>Build → zip → upload → publish</small>
-        </summary>
-        <div className="tip-body">
+      <section className="admin-guide" aria-labelledby="admin-guide-title">
+        <div className="admin-guide-head">
+          <div>
+            <p className="eyebrow">Step-by-step</p>
+            <h2 id="admin-guide-title">Add a new template</h2>
+          </div>
           <p>
-            <b>1.</b> Run <code>npm run build</code> in your React project
-            (Vite produces <code>dist/</code>).
-          </p>
-          <p>
-            <b>2.</b> Zip the <code>dist/</code> folder into{" "}
-            <code>dist.zip</code>, or select the files inside it.
-          </p>
-          <p>
-            <b>3.</b> Click <b>+ New template</b> and choose <i>Vite React</i>.
-          </p>
-          <p>
-            <b>4.</b> Open <b>Manage</b> → upload → <b>Build</b> →{" "}
-            <b>Publish</b>.
+            Five short steps from a local build to a live gallery card — including
+            where the card thumbnail image belongs.
           </p>
         </div>
-      </details>
+
+        <div className="admin-guide-steps">
+          <article className="guide-step-card">
+            <span className="guide-index">01</span>
+            <h3>Build the template</h3>
+            <p>
+              In the template folder run <code>npm run build</code>. Vite outputs{" "}
+              <code>dist/</code>, Next.js export <code>out/</code>, CRA{" "}
+              <code>build/</code>.
+            </p>
+          </article>
+
+          <article className="guide-step-card">
+            <span className="guide-index">02</span>
+            <h3>Zip the output</h3>
+            <p>
+              Zip the build folder so <code>index.html</code> sits at the archive
+              root (for example <code>dist.zip</code>). You can also upload the
+              files directly.
+            </p>
+          </article>
+
+          <article className="guide-step-card">
+            <span className="guide-index">03</span>
+            <h3>Create the draft</h3>
+            <p>
+              Click <b>+ New template</b>, fill in title, category, framework,
+              tags, and description, then choose <b>Create draft</b>.
+            </p>
+          </article>
+
+          <article className="guide-step-card">
+            <span className="guide-index">04</span>
+            <h3>Upload & build</h3>
+            <p>
+              Open <b>Manage</b> → <b>Source files</b>, drop the zip or built
+              files, choose <b>Upload files</b>, then <b>Build now</b>. Wait for a
+              successful build job.
+            </p>
+          </article>
+
+          <article className="guide-step-card">
+            <span className="guide-index">05</span>
+            <h3>Add thumbnail & publish</h3>
+            <p>
+              In <b>Manage</b> → <b>Card thumbnail</b>, upload an image or capture
+              one from the preview. Then choose <b>Publish live</b>.
+            </p>
+          </article>
+        </div>
+
+        <div className="admin-guide-note">
+          <span aria-hidden="true">🖼</span>
+          <div>
+            <b>Where the card thumbnail image goes</b>
+            <p>
+              Use <b>Manage → Card thumbnail → Upload image</b>, or place the file
+              directly at{" "}
+              <code>
+                storage/templates/&lt;template-id&gt;/thumbnail-&lt;version&gt;.jpg
+              </code>
+              . Recommended size is <b>1200 × 825 px</b> (JPG, PNG, or WebP). If
+              you skip this step, Tessera captures a screenshot automatically when
+              you press <b>Publish live</b>.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className="admincontent">
         <div className="inventory">
@@ -572,7 +694,11 @@ export default function AdminStudio() {
                       style={{ background: t.accent }}
                       aria-hidden="true"
                     >
-                      {t.title.slice(0, 2).toUpperCase()}
+                      {t.thumbnailUrl ? (
+                        <img src={t.thumbnailUrl} alt="" loading="lazy" />
+                      ) : (
+                        t.title.slice(0, 2).toUpperCase()
+                      )}
                     </span>
                     <div>
                       <strong>{t.title}</strong>
@@ -717,7 +843,11 @@ export default function AdminStudio() {
                 style={{ background: selected.accent }}
                 aria-hidden="true"
               >
-                {selected.title.slice(0, 2).toUpperCase()}
+                {selected.thumbnailUrl ? (
+                  <img src={selected.thumbnailUrl} alt="" />
+                ) : (
+                  selected.title.slice(0, 2).toUpperCase()
+                )}
               </span>
               <div>
                 <p className="eyebrow">Manage template</p>
@@ -896,6 +1026,80 @@ export default function AdminStudio() {
                   >
                     Delete template
                   </button>
+                </div>
+              </section>
+
+              <section className="manage-panel thumb-panel">
+                <div className="thumb-panel-head">
+                  <div>
+                    <h3>Card thumbnail</h3>
+                    <p className="manage-help">
+                      The image visitors see on this template&apos;s card in the
+                      public gallery. Recommended size <b>1200 × 825 px</b> (JPG,
+                      PNG, or WebP).
+                    </p>
+                  </div>
+                  <span className="thumb-tag">gallery card</span>
+                </div>
+
+                <div className="thumb-body">
+                  <figure className="thumb-preview">
+                    {selected.thumbnailUrl ? (
+                      <img
+                        src={selected.thumbnailUrl}
+                        alt={`Card thumbnail for ${selected.title}`}
+                      />
+                    ) : (
+                      <div
+                        className="thumb-preview-empty"
+                        style={{ background: selected.accent }}
+                      >
+                        <span>No thumbnail yet</span>
+                      </div>
+                    )}
+                  </figure>
+
+                  <div className="thumb-controls">
+                    <p className="thumb-path">
+                      <span>Image file location</span>
+                      <code>
+                        storage/templates/{selected.id}/thumbnail-
+                        {selected.publishedVersion || selected.version}.jpg
+                      </code>
+                    </p>
+
+                    <div className="thumb-actions">
+                      <label className="btn btn-primary thumb-upload">
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          disabled={isThumbUploading}
+                          onChange={(e) => {
+                            const input = e.currentTarget;
+                            const file = input.files?.[0] ?? null;
+                            void uploadThumbnail(file).finally(() => {
+                              input.value = "";
+                            });
+                          }}
+                        />
+                        {isThumbUploading ? "Uploading…" : "Upload image"}
+                      </label>
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={isThumbUploading}
+                        onClick={() => void captureThumbnail()}
+                      >
+                        Capture from preview
+                      </button>
+                    </div>
+
+                    <p className="thumb-note">
+                      Uploading replaces the current image immediately. If you
+                      never set one, Tessera captures a screenshot automatically
+                      the first time you press <b>Publish live</b>.
+                    </p>
+                  </div>
                 </div>
               </section>
             </div>
