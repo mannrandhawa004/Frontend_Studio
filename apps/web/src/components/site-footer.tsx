@@ -51,16 +51,19 @@ export default function SiteFooter() {
       <div className="sf-inner">
         <div className="sf-top">
           <div className="sf-news">
-            <a className="sf-brand" href="#top">
-              <span className="sf-brand-mark" aria-hidden="true">
-                ◒
-              </span>
-              <span>tessera</span>
-            </a>
+            <div className="sf-brand-row">
+              <a className="sf-brand" href="#top">
+                <span className="sf-brand-mark" aria-hidden="true">
+                  ◒
+                </span>
+                <span>tessera</span>
+              </a>
+              <span className="sf-free-pill">100% free templates</span>
+            </div>
 
             <p className="sf-pitch">
-              Join the list for <b>20% off</b> your first purchase — plus first
-              looks at every new template we publish.
+              Every template here is <b>free to use</b> — no checkout, no
+              license fees, no catch. Join the list for first looks at new drops.
             </p>
 
             <form className="sf-form" onSubmit={subscribe} noValidate>
@@ -128,47 +131,37 @@ export default function SiteFooter() {
             </div>
             <div className="sf-col">
               <p className="sf-col-title">Say hello</p>
-              <a href="mailto:hello@tessera.studio">hello@tessera.studio</a>
+              <a href="mailto:mannrandhawa004@gmail.com">mannrandhawa004@gmail.com</a>
               <a href="#top">Back to top ↑</a>
             </div>
           </nav>
         </div>
 
         <div className="sf-cta">
-          <p className="sf-eyebrow">Ready when you are</p>
-          <h2>
-            Make a better
-            <br />
-            <i>first impression.</i>
-          </h2>
+          <div className="sf-cta-copy">
+            <p className="sf-eyebrow">Free templates, forever</p>
+            <h2>
+              Make a better
+              <br />
+              <i>first impression.</i>
+            </h2>
+            <p className="sf-free-line">
+              Browse the whole collection and take what you need —{" "}
+              <b>every template is free.</b>
+            </p>
+          </div>
           <div className="sf-key-wrap">
             <Key3D />
           </div>
         </div>
 
         <div className="sf-bottom">
-          <span>© {year} Tessera. Curated templates for the modern web.</span>
-          <span>Built with React &amp; Next.js</span>
+          <span>© {year} Tessera. Free templates for the modern web.</span>
+          <span>No paywalls — free to use, forever.</span>
         </div>
       </div>
 
-      <div className="sf-wordmark" aria-hidden="true">
-        <svg viewBox="0 0 1071.89 190" role="presentation" focusable="false">
-          <text
-            x="0"
-            y="150"
-            fill="currentColor"
-            fontSize="197.28"
-            fontWeight={700}
-            letterSpacing="-7.89"
-            textLength="1071.89"
-            lengthAdjust="spacingAndGlyphs"
-            style={{ fontFamily: "DM Sans, sans-serif" }}
-          >
-            tessera
-          </text>
-        </svg>
-      </div>
+    
     </footer>
   );
 }

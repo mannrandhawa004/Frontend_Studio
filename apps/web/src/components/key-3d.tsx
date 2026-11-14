@@ -70,7 +70,7 @@ const plane = (style: CSSProperties): CSSProperties => ({
   ...style,
 });
 
-export default function Key3D({ label = "Pick Your Template", href = "#templates", onActivate }: Props) {
+export default function Key3D({ label = "Get Free Templates", href = "#templates", onActivate }: Props) {
   const stageRef = useRef<HTMLDivElement>(null);
   const flags = useRef({ hover: false, down: false, visible: true, reduced: false });
   const springs = useRef({
@@ -251,7 +251,7 @@ export default function Key3D({ label = "Pick Your Template", href = "#templates
   return (
     <div
       ref={stageRef}
-      className="key3d relative h-[407px] w-[560px] select-none"
+      className="key3d-stage"
       data-hover="false"
       data-down="false"
       data-focus="false"
@@ -374,20 +374,21 @@ export default function Key3D({ label = "Pick Your Template", href = "#templates
               })}
             >
               <span
-                className="key-sheen pointer-events-none absolute -inset-y-6 left-0 w-[34%]"
+                className="key3d-sheen"
                 style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)" }}
               />
               <span
-                className="key-rim pointer-events-none absolute inset-0"
+                className="key3d-rim"
                 style={{
                   opacity: "var(--glow)",
                   boxShadow: "inset 0 0 0 1.5px rgba(255, 128, 80, 0.5), inset 0 0 30px rgba(255, 69, 0, 0.3)",
                 }}
               />
-              <span className="key-label relative flex items-center gap-3">
+              <span className="key3d-cap-label">
                 {/* <Logomark size={27} color="#ff4500" /> */}
-                <span className="whitespace-nowrap text-[24px] font-semibold leading-[1.5] tracking-[-0.02em] text-white">
-                  {label}
+                <span className="key3d-cap-text">{label}</span>
+                <span className="key3d-cap-arrow" aria-hidden="true">
+                  ↗
                 </span>
               </span>
             </div>
@@ -398,8 +399,7 @@ export default function Key3D({ label = "Pick Your Template", href = "#templates
       {/* Accessible, flicker-free hit area matching the key's on-screen silhouette */}
       <a
         href={href}
-        aria-label={label}
-        className="pointer-events-auto absolute inset-0 z-10 cursor-pointer outline-none [-webkit-tap-highlight-color:transparent]"
+        className="key3d-hit"
         style={{ clipPath: HIT_AREA }}
         onPointerEnter={onPointerEnter}
         onPointerLeave={onPointerLeave}
@@ -413,7 +413,7 @@ export default function Key3D({ label = "Pick Your Template", href = "#templates
         onBlur={onBlur}
         draggable={false}
       >
-        <span className="sr-only">{label}</span>
+        <span className="sf-visually-hidden">{label}</span>
       </a>
     </div>
   );
