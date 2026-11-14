@@ -1,6 +1,29 @@
 {
   "templates": [
     {
+      "id": "tpl_aura_foods_bd4057",
+      "slug": "aura-foods",
+      "title": "Aura Foods",
+      "category": "Restaurant",
+      "framework": "vite-react-static",
+      "tags": [
+        "React"
+      ],
+      "description": "",
+      "status": "published",
+      "accent": "linear-gradient(145deg,#3c554b,#9abca8)",
+      "updatedAt": "2026-11-14T07:04:58.558Z",
+      "version": 1,
+      "history": [],
+      "sourceFiles": [
+        "dist/images/tpl-kora.jpg",
+        "dist/images/tpl-mira.jpg",
+        "dist/images/tpl-sola.jpg",
+        "dist/index.html"
+      ],
+      "publishedVersion": 1
+    },
+    {
       "id": "tpl_3d_sphere_ball",
       "slug": "3d-sphere-ball",
       "title": "3D Sphere Ball",
@@ -222,5 +245,15 @@
       "history": []
     }
   ],
-  "jobs": []
+  "jobs": [
+    {
+      "id": "job_37f643aa",
+      "templateId": "tpl_aura_foods_bd4057",
+      "templateTitle": "Aura Foods",
+      "status": "success",
+      "stage": "Complete",
+      "createdAt": "2026-11-14T07:04:46.752Z",
+      "message": "Template preview is ready and verified."
+    }
+  ]
 }
